@@ -1,0 +1,23 @@
+.Game {
+  display: flex;
+  flex-direction: column;
+  row-gap: 18px;
+  padding: 20px;
+}
+
+.letter-container {
+  display: flex;
+}
+
+button {
+  background-color: transparent;
+  border: 2px solid #fff;
+  border-radius: 8px;
+  color: #fff;
+  cursor: pointer;
+  font-size: calc(4px + 2vmin);
+  padding: 8px;
+}
+img {
+  max-width: 150px;
+}

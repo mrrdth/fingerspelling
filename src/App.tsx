@@ -1,45 +1,80 @@
-import { useState } from 'react';
-import { generate } from "random-words";
-import { alphabet } from './AlphabetMap';
+import { useEffect, useState } from 'react';
+import { Guess, Word } from 'components/game/Game';
 import './App.css';
+import { Controls } from 'components/game/Controls';
+
+import { generate } from "random-words";
+
+type GameState = 'ZERO' | 'RUNNING' | 'GUESS' | 'FINISHED';
+
+
+export type GameSettings = {
+  animate: boolean,
+  speedMs?: number,
+  maxLength?: number,
+}
+
+export const DEFAULT_GAME_SETTINGS = {
+  animate: true,
+  speedMs: 1000,
+  maxLength: 10,
+}
 
 function App() {
-  const [hasStartedGame, setGameState] = useState(false);
-  const [currentWord, setNewWord] = useState(generate({ min: 5 }));
-  return (
-    <div className="App">
-      {hasStartedGame ? Game() : ZeroState()}
-    </div>
-  );
+  const regenerateWord = () => generate({ minLength: 3, maxLength: 7 });
+
+  const [gameState, setGameState] = useState<GameState>('ZERO');
+  const [gameSettings, setGameSettings] = useState<GameSettings>(DEFAULT_GAME_SETTINGS);
+  const [word, setWord] = useState(regenerateWord());
+
+  const stringWord = Array.from(word).join('');
+
+  const onSettingsChanged = (settings: GameSettings) => {
+    setGameSettings(gameSettings);
+  }
+
+  const onGameStart = () => {
+    setGameState('RUNNING');
+  }
+
+  const onGameEnd = () => {
+    setGameState('GUESS');
+  }
+
+  const handleGuess = (guess: string) => {
+    if (guess === stringWord) {
+      alert('you did it');
+      setWord(regenerateWord());
+      setGameState('RUNNING');
+    } else {
+      alert('idiot, try again');
+    }
+  }
 
   function ZeroState() {
     return (
       <header>
         <h1>Welcome to fingerspeller!</h1>
+        <Controls onSettingsChanged={onSettingsChanged} />
         <button onClick={onGameStart}>Ready to start?</button>
       </header>
     )
   }
 
-  function onGameStart() {
-    setGameState(true);
-    setNewWord(generate({ minLength: 5 }));
+  function getGameState() {
+    if (gameState === 'ZERO') return <ZeroState />;
+    else if (gameState === 'RUNNING') return <Word word={stringWord} onEnd={onGameEnd} />;
+    else if (gameState === 'GUESS') return <Guess word={stringWord} onGuess={handleGuess} />;
+    else return <ZeroState />;
+
   }
 
-  function Game() {
-    const letters = Array.from(currentWord);
-    const letterNodes = letters.map(function (letter) {
-      return (<img src={alphabet[letter]}></img>);
-    });
-    return (
-      <div className="Game">
-        <div className="letter-container">
-          {letterNodes}
-        </div>
-        <button onClick={() => setNewWord(generate({ minLength: 5 }))}>New word?</button>
-      </div>
-    );
-  }
+  return (
+    <div className="App">
+      {getGameState()}
+    </div>
+  );
+
 }
 
 export default App;
